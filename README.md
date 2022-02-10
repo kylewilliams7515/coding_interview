@@ -1,83 +1,38 @@
-# Background
+# Installation Instructions
 
-Most calendar applications provide some kind of "meet with" feature where the user
-can input a list of coworkers with whom they want to meet, and the calendar will
-output a list of times where all the coworkers are available.
+1. Install the most recent python version (3.10) for your platform of choice (I'm running on a Windows machine, so this would be the [Windows Installer (64 bit)](https://www.python.org/downloads/windows/).
+2. Run the Installer, ensuring that the box at the beginning to add python to your path is checked
+3. Python should now work from a terminal/powershell window
+4. Pull down the main branch of this package from GitHub into your local machine.
 
-For example, say that we want to schedule a meeting with Jane, John, and Mary on Monday.
+# Running
+Once python is properly set up and able to be run from a terminal and the code is pulled from GitHub, running the script simply requires `cd`ing into the workspace where you've pulled the code down locally. Then, simply run the script, such as `python availability.py Maggie Joe Jordan`, in order to find shared availabilities.
 
-- Jane is busy from 9am - 10am, 12pm - 1pm, and 4pm - 5pm.
-- John is busy from 9:30am - 11:00am and 3pm - 4pm
-- Mary is busy from 3:30pm - 5pm.
+#Approach
 
-Based on that information, our calendar app should tell us that everyone is available:
-- 11:00am - 12:00pm
-- 1pm - 3pm
+When attacking solving this problem, I first decided to go with Python for the language of the solution due to its simplicity for script writing as opposed to my primary language of choice otherwise, Java.
 
-We can then schedule a meeting during any of those available times.
+With regards to the actual algorithm, I wanted to ensure that I was only iterating over the data set a single time in my search for available time slots. In order to do this, I sorted the events in the events data set by start time after pulling them into the script at the beginning. 
 
+After iterating over the user data set to map from user to ID, it was easy to filter out events for users who weren't selected during my one iteration over the events. 
 
-# Instructions
+In order to find availabilities, I simply needed to hold the last end time for the previous event and print it along with the start time for the next event.
 
-Given the data in `events.json` and `users.json`, build a script that displays available times
-for a given set of users. For example, your script might be executed like this:
+I also needed to handle a few edge cases, namely:
 
-```
-python availability.py Maggie,Joe,Jordan
-```
+1. When an event starts at the beginning of a day
+2. When the previous event ended on the day prior to the current event
+3. When an event ends at the end of a day
+4. When the next event starts after the last one ends
+5. When a previous event's time frame fully encompasses the time frame of one or more future events
 
-and would output something like this:
+My handling of these edge cases, all of which were demonstrated by the example run for Maggie, Joe, and Jordan, are documented further in comments in the script itself. In brief, in order to handle each of these, I:
 
-```
-2021-07-05 13:30 - 16:00
-2021-07-05 17:00 - 19:00
-2021-07-05 20:00 - 21:00
+1. Don't print any prior availability for a day if the event starts at the beginning of the business day
+2. Check the day for the previous event via lastEndTime and next event to determine whether we need to print availability for multiple dates between events
+3. When checking the day for the previous event, ensure we're not printing anything if the last end time's hour was 21
+4. Ensured we were skipping over events with a start time prior to the last end time, with the caveat that
+5. If the next event starts before the last event ends and ends after the last event ends, just update the last end time
 
-2021-07-06 14:30 - 15:00
-2021-07-06 16:00 - 18:00
-2021-07-06 19:00 - 19:30
-2021-07-06 20:00 - 20:30
-
-2021-07-07 14:00 - 15:00
-2021-07-07 16:00 - 16:15
-```
-
-
-For the purposes of this exercise, you should restrict your search between `2021-07-05` and `2021-07-07`,
-which are the three days covered in the `events.json` file. You can also assume working hours between
-`13:00` and `21:00` UTC, which is 9-5 Eastern (don't worry about any time zone conversion, just work in
-UTC). Optionally, you could make your program support configured working hours, but this is not necessary.
-
-
-## Data files
-
-### `users.json`
-
-A list of users that our system is aware of. You can assume all the names are unique (in the real world, maybe
-they would be input as email addresses).
-
-`id`: An integer unique to the user
-
-`name`: The display name of the user - your program should accept these names as input.
-
-### `events.json`
-
-A dataset of all events on the calendars of all our users.
-
-`id`: An integer unique to the event
-
-`user_id`: A foreign key reference to a user
-
-`start_time`: The time the event begins
-
-`end_time`: The time the event ends
-
-
-# Notes
-
-- Feel free to use whatever language you feel most comfortable working with
-- Please provide instructions for execution of your program
-- Please include a description of your approach to the problem, as well as any documentation about
-  key parts of your code.
-- You'll notice that all our events start and end on 15 minute blocks. However, this is not a strict
-  requirement. Events may start or end on any minute (for example, you may have an event from 13:26 - 13:54).
+Time complexity is O(n), where n is the size of the events data set, due to only having to iterate through it once.
+Space complexity is also O(n) as we have to load and store all of the events.
